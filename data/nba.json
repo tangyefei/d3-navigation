@@ -1,0 +1,47 @@
+{
+    "name": "nba",
+    "children": [
+        {"name": "Atlantic", "children": [
+            {"name": "Boston Celtics",  "city": "Boston"},
+            {"name": "Brooklyn Nets",   "city": "New York"},
+            {"name": "New York Knicks",  "city": "New York"},
+            {"name": "Philadelphia 76ers",  "city": "Philadelphia"},
+            {"name": "Toronto Raptors",  "city": "Toronto"}
+        ]},
+        {"name": "Central", "children": [
+            {"name": "Chicago Bulls",  "city": "Chicago"},
+            {"name": "Cleveland Cavaliers",  "city": "Cleveland"},
+            {"name": "Detroit Pistons",  "city": "Auburn Hills"},
+            {"name": "Indiana Pacers",  "city": "Indianapolis"},
+            {"name": "Milwaukee Bucks",  "city": "Milwaukee"}
+        ]},
+        {"name": "Southeast", "children": [
+            {"name": "Atlanta Hawks ", "city":"Atlanta"},
+            {"name": "Charlotte Hornets ", "city":"Charlotte"},
+            {"name": "Miami Heat", "city":"Miami"},
+            {"name": "Orlando Magic ", "city":"Orlando"},
+            {"name": "Washington Wizards", "city":"Washington"}
+        ]},
+        {"name": "Northwest", "children": [
+            {"name": "Denver Nuggets ", "city": "Denver"},
+            {"name": "Minnesota Timberwolves ", "city": "Minneapolis"},
+            {"name": "Oklahoma City Thunder", "city": "Oklahoma City"},
+            {"name": "Portland Trail Blazers ", "city": "Portland"},
+            {"name": "Utah Jazz", "city": "Salt Lake"}
+        ]},
+        {"name": "Pacific", "children": [
+            {"name": "Golden State Warriors  ", "city": "Oakland"},
+            {"name": "Los Angeles Clippers", "city": "Los Angeles"},
+            {"name": "Los Angeles Lakers", "city": "Los Angeles"},
+            {"name": "Phoenix Suns", "city": "Phoenix"},
+            {"name": "Sacramento Kings", "city": "Sacramento"}
+        ]},
+        {"name": "Southwest", "children": [
+            {"name": "Dallas Mavericks", "city": "Dallas"},
+            {"name": "Houston Rockets", "city": "Houston"},
+            {"name": "Memphis Grizzlies", "city": "Memphis"},
+            {"name": "New Orleans Pelicans", "city": "New Orleans"},
+            {"name": "San Antonio Spurs", "city": "San Antonio"}
+        ]}
+    ]
+}
