@@ -5,3 +5,4 @@ d3-navigation is a widget (based on d3 [example](http://bl.ocks.org/mbostock/406
 - create turntable
 - create leaves with nba teams information
 - create linkage between different level
+- interaction: click on division would update teams outside

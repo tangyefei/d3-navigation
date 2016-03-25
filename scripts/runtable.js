@@ -24,7 +24,7 @@
     var diagonal = d3.svg.diagonal.radial()
         .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
 
-    var teamCollection = {}, divisionTeams;
+    var nbaData, teamCollection = {}, divisionTeams;
 
 
     /****************************************** TRUN_TABLE ******************************************************/
@@ -74,6 +74,8 @@
     }
 
     function formatNodesByRound(cont, data) {
+      svg.selectAll("." + cont.clz).remove();
+
       var nodes = tree.nodes(data);
       var node = svg.selectAll("." + cont.clz)
           .data(nodes)
@@ -88,15 +90,116 @@
           .text(function(d) { return d.name; });
       };
 
+    /****************************************** Prototype ******************************************************/
 
-    d3.json("data/nba.json", function(error, root) {
-        processData(root);
-        config['leafDatas'].push(root);
-        config['leafDatas'].push(divisionTeams);
-        formatNodesByRound(config['leafConfs'][0], config['leafDatas'][0]);
-        formatNodesByRound(config['leafConfs'][1], config['leafDatas'][1]);
-    });
+      function Point(x, y) {
+        this.x = x || 0;
+        this.y = y || 0;
+      }
 
-    formatTurntable();
+      function Vector(x, y) {
+        this.x = x;
+        this.y = y;
+      };
 
+      Vector.prototype.length = function() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+      };
+
+      Vector.prototype.getRotateAngle = function(toVector) {
+        var epsilon = 1.0e-6;
+        var angle = 0;
+        var norVec1 = new Vector(0, 0),
+         norVec2 = new Vector(0, 0);
+
+        norVec1.x = this.x / Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+        norVec1.y = this.y / Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+        norVec2.x = toVector.x / Math.sqrt(Math.pow(toVector.x, 2) + Math.pow(toVector.y, 2));
+        norVec2.y = toVector.y / Math.sqrt(Math.pow(toVector.x, 2) + Math.pow(toVector.y, 2));
+
+        var dotProd = (norVec1.x * norVec2.x) + (norVec1.y * norVec2.y);
+        if (Math.abs(dotProd - 1.0) <= epsilon) {
+         angle = 0;
+        } else if (Math.abs(dotProd + 1.0) <= epsilon) {
+         angle = Math.PI;
+        } else {
+         var cross = 0;
+         angle = Math.acos(dotProd);
+         cross = (norVec1.x * norVec2.y) - (norVec2.x * norVec1.y);
+         if (cross < 0) // this rotate clockwise to toVector
+           angle = 2 * Math.PI - angle;
+        }
+
+        return angle * (180 / Math.PI);
+      }
+
+      function getAngleBetweenVectors(v1, v2) {
+        var angle = v1.getRotateAngle(v2);
+        var angle = (angle > 180 ? (angle - 360) : angle);
+
+        return angle;
+      };
+
+
+      function getCircleNumBelongTo(pX, pY) {
+            var vect = new Vector(pX - centerPoint.x, pY - centerPoint.y);
+            var length = vect.length();
+            var innerRadius = config.diameter / 2 * config.turntable.rounds[0]['radius'];
+            var middleRadius = config.diameter / 2 * config.turntable.rounds[1]['radius'];
+            var outerRadius = config.diameter / 2 * config.turntable.rounds[2]['radius'];
+
+            if(length < innerRadius) {
+                return 1;
+            } else if(length < middleRadius) {
+                  return 2;
+            } else if(length < outerRadius) {
+                return 3;
+            }
+            return -1;
+      };
+
+      /****************************************** Events ******************************************************/
+        var centerPoint = new Point();
+        var mouseUpPoint = new Point();
+        var touchCircleNum;
+
+        function initCenterPosition() {
+            var $svg = $('svg');
+            centerPoint.x = $svg.position().left  + parseFloat($svg.attr('width') / 2);
+            centerPoint.y = $svg.position().top  + parseFloat($svg.attr('height') / 2);
+        }
+
+        function bindEvents() {
+            initCenterPosition();
+
+            $(document).on('click', function(e) {
+                mouseUpPoint.x = event.x;
+                mouseUpPoint.y = event.y;
+                touchCircleNum = getCircleNumBelongTo(event.x, event.y);
+
+                if(touchCircleNum > 0)  {
+                    var v1 = new Vector(1, 0);
+                    var v2 = new Vector(mouseUpPoint.x - centerPoint.x, mouseUpPoint.y - centerPoint.y);
+                    var angle = getAngleBetweenVectors(v1, v2);
+                    var count = config['leafDatas'][touchCircleNum - 2]['children'].length;
+                    var index = (count + Math.round(angle / (360 / count))) % count;
+                    var name = nbaData.children[index]['name'];
+                    config['leafDatas'][1] = {'name': name, 'children': teamCollection[name]};
+                    formatNodesByRound(config['leafConfs'][1], config['leafDatas'][1]);
+                    // console.log(angle + ',' + index);
+                }
+            });
+        }
+
+        d3.json("data/nba.json", function(error, root) {
+            nbaData = root;
+            processData(nbaData);
+            config['leafDatas'].push(nbaData);
+            config['leafDatas'].push(divisionTeams);
+            formatNodesByRound(config['leafConfs'][0], config['leafDatas'][0]);
+            formatNodesByRound(config['leafConfs'][1], config['leafDatas'][1]);
+        });
+
+        formatTurntable();
+        bindEvents();
 })(window);
