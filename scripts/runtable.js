@@ -222,7 +222,7 @@
                 var v2 = new Vector(mouseUpPoint.x - centerPoint.x, mouseUpPoint.y - centerPoint.y);
                 var angle = getAngleBetweenVectors(v1, v2);
                 var len = config['leafDatas'][touchCircleNum - 1]['children'].length;
-                var unitAngle = 360 / angle;
+                var unitAngle = 360 / len;
                 var name, index;
 
                 // for both round two and three, update outside
@@ -232,7 +232,7 @@
                 if(touchCircleNum == 2) {
                     setTimeout(function(){
                         index = (config['rots'][touchCircleNum - 1] / unitAngle) % len
-                        index = index > 0 ? inde : (index + len);
+                        index = parseInt(index >= 0 ? index : (index + len));
                         name = nbaData.children[index]['name'];
                         config['leafDatas'][2] = {'name': name, 'children': teamCollection[name]};
                         formatNodesByRound(touchCircleNum + 1);
