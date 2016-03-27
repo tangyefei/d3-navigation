@@ -11,7 +11,8 @@ body {
   fill: #222;
 }
 
-#midd-circle circle {
+
+#midd-circle circle, svg rect {
   fill: #666;
 }
 

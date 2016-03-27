@@ -2,18 +2,29 @@
     'use strict'
     var svg, g, offsetX = 0, offsetY = 0, config = {
         'diameter': 480,
+        'lazyMillSeconds': 1000,
+        'rots': [0, 0,0], // leavies rotate angles
         'turntable': {
             "rounds": [
                 {'id': 'round1', 'class': 'inner-circle', 'radius': 0.2},
                 {'id': 'round2', 'class': 'midd-circle', 'radius': 0.5},
                 {'id': 'round3', 'class': 'outer-circle', 'radius': 1.0}
-            ]
+            ],
+            'pointer': {
+                'id': 'pointer', 'class': 'rect', 'attrs': {'width': 0.2, 'height': 10}
+            }
         },
+        // TODO try to merge confs and datas together
         'leafConfs': [
-            {'clz': 'dnode', 'radius': 0.5},
-            {'clz': 'tnode',  'radius': 0.8}
+            null,
+            {'class': 'dnode', 'radius': 0.5},
+            {'class': 'tnode',  'radius': 0.8}
         ],
-        'leafDatas': [],
+        'leafDatas': [
+            null,
+            null,
+            null
+        ],
         'teamNameOffset': 60
     };
 
@@ -31,13 +42,13 @@
     function formatGraphUnit(t, x, y, id, attrs) {
         var k = null,
             g = svg.append('g')
-                // .attr("transform", "translate(" + x + "," + y + ")")
+                .attr("transform", "translate(" + x + "," + y + ")")
                 .attr('id', id)
                 .append(t);
 
-            for(k in attrs)
-                g.attr(("" + k), attrs[k]);
-        };
+        for(k in attrs)
+            g.attr(("" + k), attrs[k]);
+    };
 
     function formatTurntable() {
         svg = d3.select("body").append("svg")
@@ -46,17 +57,24 @@
         .append("g")
             .attr("transform", "translate(" + config.diameter / 2 + "," + config.diameter / 2 + ")");
 
+        var round, d, id, x, y, cls, radius, attrs;
+
         for(var i = config.turntable.rounds.length - 1; i >=0; i --) {
-            var round = config.turntable.rounds[i];
-            var d = config.diameter;
-            var x = d / 2;
-            var y = d / 2;
-            var cls = round['class'];
-            var radius = round['radius']  *  (d / 2);
-            var attrs = {'r': radius, 'class': cls};
+            round = config.turntable.rounds[i];
+            d = config.diameter;
+            id = round['id'];
+            x = 0,
+            y = 0,
+            cls = round['class'];
+            radius = round['radius']  *  (d / 2);
+            attrs = {'r': radius, 'class': cls};
 
             formatGraphUnit('circle', x, y, cls, attrs)
         }
+
+        cls = config.turntable.pointer.class;
+        config.turntable.pointer.attrs.width = config.diameter / 2 * config.turntable.pointer.attrs.width;
+        formatGraphUnit('rect', x, y - config.turntable.pointer.attrs.height / 2, cls, config.turntable.pointer.attrs)
     };
 
     /****************************************** LEAVIES ******************************************************/
@@ -73,21 +91,42 @@
         }
     }
 
-    function formatNodesByRound(cont, data) {
-      svg.selectAll("." + cont.clz).remove();
+    function formatNodesByRound(touchCircleNum) {
+        var cont = config['leafConfs'][touchCircleNum - 1];
+        var data = config['leafDatas'][touchCircleNum - 1];
+        var unitAngle = 360 / data.children.length;
 
-      var nodes = tree.nodes(data);
-      var node = svg.selectAll("." + cont.clz)
-          .data(nodes)
-        .enter().append("g")
-          .attr("class", cont.clz)
-          .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (cont.radius * config.diameter / 2 - config.teamNameOffset) + ")";})
+        svg.selectAll("." + cont.class).remove();
 
-      node.append("text")
-          .attr("dy", ".31em")
-          .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
-          .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
-          .text(function(d) { return d.name; });
+        var nodes = tree.nodes(data);
+        var node = svg.selectAll("." + cont.class)
+              .data(nodes)
+          .enter().append("g")
+              .attr("class", cont.class)
+              .attr("transform", function(d) { return "rotate(" + (d.x - unitAngle / 2) + ")translate(" + (cont.radius * config.diameter / 2 - config.teamNameOffset) + ")";})
+
+        node.append("text")
+            .attr("dy", ".31em")
+            .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+            .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+            .text(function(d) { return d.name; });
+      };
+
+      function rotateLeavies(circleNum, angle) {
+        var len = config['leafDatas'][circleNum - 1]['children'].length;
+        var rot = config.rots[circleNum - 1];
+        var clz = config.leafConfs[circleNum - 1]['class'];
+        var radius = config.leafConfs[circleNum - 1]['radius'] * config.diameter / 2 -  config.teamNameOffset;
+        var alpha = 0;
+        var unitAngle = 360 / len;
+        var angle = Math.round(angle / unitAngle) * unitAngle;
+
+        rot += angle;
+        rot = rot % 360;
+        config['rots'][circleNum - 1] = rot;
+
+        svg.selectAll("." + clz).transition().duration(Math.abs(angle) / 45 * 1000)
+            .attr("transform", function(d) { return "rotate(" + (d.x - unitAngle / 2 + rot) + ")translate(" + radius + ")"; });
       };
 
     /****************************************** Prototype ******************************************************/
@@ -140,7 +179,6 @@
         return angle;
       };
 
-
       function getCircleNumBelongTo(pX, pY) {
             var vect = new Vector(pX - centerPoint.x, pY - centerPoint.y);
             var length = vect.length();
@@ -175,18 +213,30 @@
             $(document).on('click', function(e) {
                 mouseUpPoint.x = event.x;
                 mouseUpPoint.y = event.y;
+                // Tricky: the scroll bar would cause the event.x not expected
                 touchCircleNum = getCircleNumBelongTo(event.x, event.y);
 
-                if(touchCircleNum > 0)  {
-                    var v1 = new Vector(1, 0);
-                    var v2 = new Vector(mouseUpPoint.x - centerPoint.x, mouseUpPoint.y - centerPoint.y);
-                    var angle = getAngleBetweenVectors(v1, v2);
-                    var count = config['leafDatas'][touchCircleNum - 2]['children'].length;
-                    var index = (count + Math.round(angle / (360 / count))) % count;
-                    var name = nbaData.children[index]['name'];
-                    config['leafDatas'][1] = {'name': name, 'children': teamCollection[name]};
-                    formatNodesByRound(config['leafConfs'][1], config['leafDatas'][1]);
-                    // console.log(angle + ',' + index);
+                if(touchCircleNum !== 2 && touchCircleNum !== 3) return;
+
+                var v1 = new Vector(1, 0);
+                var v2 = new Vector(mouseUpPoint.x - centerPoint.x, mouseUpPoint.y - centerPoint.y);
+                var angle = getAngleBetweenVectors(v1, v2);
+                var len = config['leafDatas'][touchCircleNum - 1]['children'].length;
+                var unitAngle = 360 / angle;
+                var name, index;
+
+                // for both round two and three, update outside
+                rotateLeavies(touchCircleNum, - angle);
+
+                // for round two, update outside
+                if(touchCircleNum == 2) {
+                    setTimeout(function(){
+                        index = (config['rots'][touchCircleNum - 1] / unitAngle) % len
+                        index = index > 0 ? inde : (index + len);
+                        name = nbaData.children[index]['name'];
+                        config['leafDatas'][2] = {'name': name, 'children': teamCollection[name]};
+                        formatNodesByRound(touchCircleNum + 1);
+                    }, config.lazyMillSeconds);
                 }
             });
         }
@@ -194,10 +244,10 @@
         d3.json("data/nba.json", function(error, root) {
             nbaData = root;
             processData(nbaData);
-            config['leafDatas'].push(nbaData);
-            config['leafDatas'].push(divisionTeams);
-            formatNodesByRound(config['leafConfs'][0], config['leafDatas'][0]);
-            formatNodesByRound(config['leafConfs'][1], config['leafDatas'][1]);
+            config['leafDatas'][1] = nbaData;
+            config['leafDatas'][2] = divisionTeams;
+            formatNodesByRound(2);
+            formatNodesByRound(3);
         });
 
         formatTurntable();
