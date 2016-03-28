@@ -1,5 +1,4 @@
-(function(window){
-    'use strict'
+define(function(require, exports, module) {
       function Point(x, y) {
         this.x = x || 0;
         this.y = y || 0;
@@ -49,6 +48,8 @@
         return angle;
       }
 
-      window.Point = Point;
-      window.Vector = Vector;
-})(window);
+      module.exports = {
+        Point: Point,
+        Vector: Vector
+      };
+});

@@ -1,7 +1,5 @@
-(function(window){
-    'use strict'
-
-    var _export = {
+define(function(require, exports, module) {
+    module.exports = {
         'diameter': 480,
         'lazyMillSeconds': 1000,
         'rots': [0, 0,0], // leavies rotate angles
@@ -27,9 +25,5 @@
             null
         ],
         'teamNameOffset': 60
-    };
-
-
-    window.navigation = window.navigation || {};
-    window.navigation.config = window.navigation.config || _export;
-})(window);
+    }
+});

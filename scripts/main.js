@@ -1,10 +1,10 @@
-(function(window){
-    'use strict'
+define(function(require, exports, module) {
+    var config = require('./config');
+    var prototype = require('./prototype');
+    var leavies = require('./leavies');
+    var turntable = require('./turntable');
 
     var root, teamCollection = {}, divisionTeams;
-    var leavies = window.navigation.leavies;
-    var turntable = window.navigation.turntable;
-    var config = window.navigation.config;
     var touchCircleNum, clickZone;
     var timeout;
 
@@ -31,7 +31,7 @@
             if( touchCircleNum !== 2 && touchCircleNum !== 3 ) return;
 
             // Tricky: the scroll bar would cause the event.x not expected
-            var vector = new Vector(event.x - turntable.centerPoint.x, event.y - turntable.centerPoint.y)
+            var vector = new prototype.Vector(event.x - turntable.centerPoint.x, event.y - turntable.centerPoint.y)
             var angle = vector.getOffsetAngle();
             var len = config['leafDatas'][touchCircleNum - 1]['children'].length;
             var unitAngle = 360 / len;
@@ -63,4 +63,4 @@
         leavies.formatNodesByRound(2).formatNodesByRound(3);
         bindEvents();
     });
-})(window);
+});
