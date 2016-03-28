@@ -19,3 +19,14 @@ body {
 #inner-circle circle {
     fill: #999;
 }
+
+.dnode circle, .tnode circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.dnode, .tnode {
+  font: 10px sans-serif;
+  fill: #fff;
+}

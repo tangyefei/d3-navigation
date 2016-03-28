@@ -7,3 +7,4 @@ d3-navigation is a widget (based on d3 [example](http://bl.ocks.org/mbostock/406
 - create linkage between different level
 - interaction: click on division would update teams outside
 - add pointer as instruction and make round item rotate
+- reconstruct and module the javascript part
